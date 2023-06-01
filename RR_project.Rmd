@@ -2,29 +2,75 @@
 title: "RR_project"
 author: "Zixia Zhou/Runan Zhang/Adrianna Świerzak"
 date: "2023-06-01"
-output: html_document
+output: 
+  html_document:
+    theme: spacelab
+    highlight: tango
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo    = TRUE, 
+                      cache   = FALSE,
+                      message = FALSE, 
+                      warning = FALSE)
+options(scipen = 10)
+install.packages("readxl")
 ```
 
-## R Markdown
+## 1.Importing the data
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+First we load some libraries, function and our data.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+```{r cache = FALSE}
+library(xts)
+library(lmtest)
+library(tidyverse)
+library(vars)
+library(readxl)
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r cache = FALSE}
+setwd('/Users/hazelzhou/Desktop/RR')
+source("Team-project/functions/testdf.R")
+data <- read_excel('Team-project/RR_data.xls')
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+The structure of the data
+
+```{r}
+data %>% glimpse()
+head(data)
+tail(data)
+```
+
+Let's correct the type of the `date` variable and transform the `data.frame` into an `xts` object
+
+```{r}
+data$Date <- as.Date(data$Date, format = "%Y-%m-%d")
+data %>% glimpse()
+data <- xts(data[, -1], order.by = data$Date)
+```
+
+Next, let's create their difference.
+
+```{r}
+data$dEXC <- diff.xts(data$EXC)
+data$dINF <- diff.xts(data$INF)
+data$dIR <- diff.xts(data$IR)
+```
+
+Then, plotting the data.
+
+```{r}
+plot(data[, c(1:3)],
+     col = c("pink", "lightblue","lightgreen"),
+     major.ticks = "months", 
+     grid.ticks.on = "months",
+     grid.ticks.lty = 3,
+     main = "All data",
+     legend.loc = "topleft")
+```
