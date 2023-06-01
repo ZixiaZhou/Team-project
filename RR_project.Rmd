@@ -31,6 +31,7 @@ library(lmtest)
 library(tidyverse)
 library(vars)
 library(readxl)
+library(urca)
 ```
 
 ```{r cache = FALSE}
@@ -74,3 +75,55 @@ plot(data[, c(1:3)],
      main = "All data",
      legend.loc = "topleft")
 ```
+
+## 2.Testing cointegration
+
+Cointegration describes a long-term relationship between two or more time series variables. `EXC`, `INF` and `IR` are cointegrated if they are stationary in same difference order and their linear combination is also stationary in lower order.
+
+We will conduct integration order tests on the data. To begin, we will apply the Augmented Dickey-Fuller (ADF) test on the variable `EXC` and its first differences.
+
+```{r}
+testdf(variable = data$EXC,
+       max.augmentations = 3)
+```
+
+As we can see, the p-value of Breusch-Godfrey test, which is used to test for autocorrelation in the residuals is very low in first line.
+
+**H0 = No Autocorrelation**
+
+**Ha = Autocorrelation**
+
+We should reject null hypothesis and we cannot interpret it's ADF test. Even the p-value of BG test is higher than significant level 5%, the p-value of ADF test is higher that significant level 5% in rest of the row, so we should reject the null hypothesis.
+
+Let's interpret the result of first difference.
+
+```{r}
+testdf(variable = data$dEXC, 
+       max.augmentations = 3)
+```
+
+In the first row, it shows higher p-value of BG test and and lower p-value of ADF test. It indicates `EXC` is integrated of order 1.
+
+The paper also conducted the Phillips-Perron (PP) which is similar to ADF. \* $H_0:$ time series is not stationary (integrated of order $\ge 1$) \* $H_a:$ time series is stationary (integrated of order $= 0$)
+
+```{r}
+pp.test.EXC <- ur.pp(data$EXC,
+                 type = c("Z-tau"), 
+                 model = c("constant"))
+summary(pp.test.EXC)
+```
+
+Value of the test-statistic Z-tau (-0.9295) is higher than the 1% critical value (-3.480998), so we cannot reject the null about non-stationarity of `EXC`.
+
+We will also use PP test for the difference of `EXC`.
+
+```{r}
+pp.test.EXC.d <- ur.pp(diff.xts(data$EXC), 
+                   type = c("Z-tau"), 
+                   model = c("constant"))
+summary(pp.test.EXC.d)
+```
+
+Value of the test-statistic Z-tau (-6.9487) is now lower than the 1% critical value (-3.481377), so now we **reject** the null about non-stationarity of first differences of `EXC`
+
+By concluding `EXC ~ I(1)`.
