@@ -23,7 +23,7 @@ install.packages("readxl")
 
 ## 1.Importing the data
 
-First we load some libraries, function and our data.
+To begin, we import the required libraries and define necessary functions. Then, we load our dataset.
 
 ```{r cache = FALSE}
 library(xts)
@@ -40,7 +40,7 @@ source("Team-project/functions/testdf.R")
 data <- read_excel('Team-project/RR_data.xls')
 ```
 
-The structure of the data
+Here is the structure of the data.
 
 ```{r}
 data %>% glimpse()
@@ -48,15 +48,14 @@ head(data)
 tail(data)
 ```
 
-Let's correct the type of the `date` variable and transform the `data.frame` into an `xts` object
-
+Next, we proceed to correct the data type of the date variable and convert the `data.frame` into an `xts` object.
 ```{r}
 data$Date <- as.Date(data$Date, format = "%Y-%m-%d")
 data %>% glimpse()
 data <- xts(data[, -1], order.by = data$Date)
 ```
 
-Next, let's create their difference.
+Let's create their difference.
 
 ```{r}
 data$dEXC <- diff.xts(data$EXC)
@@ -76,24 +75,25 @@ plot(data[, c(1:3)],
      legend.loc = "topleft")
 ```
 
-## 2.Testing cointegration
+## 2.Stationarity Test
+Stationarity refers to the property of a time series where the statistical properties such as mean, variance, and covariance remain constant over time.
 
-Cointegration describes a long-term relationship between two or more time series variables. `EXC`, `INF` and `IR` are cointegrated if they are stationary in same difference order and their linear combination is also stationary in lower order.
+We will apply the Augmented Dickey-Fuller (ADF) test and Phillips-Perron (PP) test on the variable `EXC`, `INF`, `IR` and their first differences.
 
-We will conduct integration order tests on the data. To begin, we will apply the Augmented Dickey-Fuller (ADF) test on the variable `EXC` and its first differences.
+First, let's test variable `EXC`.
 
 ```{r}
 testdf(variable = data$EXC,
        max.augmentations = 3)
 ```
 
-As we can see, the p-value of Breusch-Godfrey test, which is used to test for autocorrelation in the residuals is very low in first line.
+As we can see, the p-value of Breusch-Godfrey test, which is used to test for autocorrelation in the residuals is very low in first line. In such case, the ADF test is inefficient since the residuals are serial correlation.
 
 **H0 = No Autocorrelation**
 
 **Ha = Autocorrelation**
 
-We should reject null hypothesis and we cannot interpret it's ADF test. Even the p-value of BG test is higher than significant level 5%, the p-value of ADF test is higher that significant level 5% in rest of the row, so we should reject the null hypothesis.
+We should reject null hypothesis and we cannot interpret it's ADF test. Even the p-value of BG test is higher than significant level 1%, the p-value of ADF test is higher that significant level 1% in rest of the rows, so we should reject the null hypothesis.
 
 Let's interpret the result of first difference.
 
@@ -104,7 +104,11 @@ testdf(variable = data$dEXC,
 
 In the first row, it shows higher p-value of BG test and and lower p-value of ADF test. It indicates `EXC` is integrated of order 1.
 
-The paper also conducted the Phillips-Perron (PP) which is similar to ADF. \* $H_0:$ time series is not stationary (integrated of order $\ge 1$) \* $H_a:$ time series is stationary (integrated of order $= 0$)
+The paper also conducted the Phillips-Perron (PP) which is similar to ADF.
+
+H0: time series is not stationary
+
+Ha: time series is stationary
 
 ```{r}
 pp.test.EXC <- ur.pp(data$EXC,
@@ -113,7 +117,7 @@ pp.test.EXC <- ur.pp(data$EXC,
 summary(pp.test.EXC)
 ```
 
-Value of the test-statistic Z-tau (-0.9295) is higher than the 1% critical value (-3.480998), so we cannot reject the null about non-stationarity of `EXC`.
+Test-statistic Z-tau (-0.9295) is higher than the 1% critical value (-3.480998), so we cannot reject the null about non-stationary of `EXC`.
 
 We will also use PP test for the difference of `EXC`.
 
@@ -124,6 +128,6 @@ pp.test.EXC.d <- ur.pp(diff.xts(data$EXC),
 summary(pp.test.EXC.d)
 ```
 
-Value of the test-statistic Z-tau (-6.9487) is now lower than the 1% critical value (-3.481377), so now we **reject** the null about non-stationarity of first differences of `EXC`
+Test-statistic Z-tau (-6.9487) is now lower than the 1% critical value (-3.481377), so now we **reject** the null about non-stationary of first differences of `EXC`
 
 By concluding `EXC ~ I(1)`.
