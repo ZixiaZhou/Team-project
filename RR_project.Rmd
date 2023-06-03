@@ -1,0 +1,244 @@
+---
+title: Reproduced 'A Vector Error Correction Model (VECM) Approach in Explaining the
+  Relationship Between Interest Rate and Inflation Towards Exchange Rate Volatility
+  in Malaysia'
+author: "Zixia Zhou/Runan Zhang/Adrianna Świerzak"
+date: "2023-06-02"
+output: 
+  html_document:
+    theme: spacelab
+    highlight: tango
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo    = TRUE, 
+                      cache   = FALSE,
+                      message = FALSE, 
+                      warning = FALSE)
+options(scipen = 10)
+install.packages("readxl")
+```
+
+## 1.Importing the data
+
+To begin, we import the required libraries and define necessary functions. Then, we load our dataset.
+
+```{r cache = FALSE}
+library(xts)
+library(lmtest)
+library(tidyverse)
+library(vars)
+library(readxl)
+library(urca)
+```
+
+```{r cache = FALSE}
+setwd('/Users/hazelzhou/Desktop/RR')
+source("Team-project/functions/testdf.R")
+data <- read_excel('Team-project/RR_data.xls')
+```
+
+Here is the structure of the data.
+
+```{r}
+data %>% glimpse()
+head(data)
+tail(data)
+```
+
+Next, we proceed to correct the data type of the date variable and convert the `data.frame` into an `xts` object. Then we transform the data into log form as the paper mentioned.
+
+```{r}
+data$Date <- as.Date(data$Date, format = "%Y-%m-%d")
+data %>% glimpse()
+data <- xts(data[, -1], order.by = data$Date)
+log.data <- log(data)
+```
+Let's create their difference.
+
+```{r}
+log.data$dEXC <- diff.xts(log.data$EXC)
+log.data$dINF <- diff.xts(log.data$INF)
+log.data$dIR <- diff.xts(log.data$IR)
+```
+Then, plotting the data.
+
+```{r}
+plot(log.data[, c(1:3)],
+     col = c("pink", "lightblue","lightgreen"),
+     major.ticks = "months", 
+     grid.ticks.on = "months",
+     grid.ticks.lty = 3,
+     main = "log.data",
+     legend.loc = "topleft")
+```
+## 2.Stationarity Test
+
+Stationarity refers to the property of a time series where the statistical properties such as mean, variance, and covariance remain constant over time.
+
+We will apply the Augmented Dickey-Fuller (ADF) test and Phillips-Perron (PP) test on the variable `EXC`, `INF`, `IR` and their first differences.
+### 2.1.1 ADF test of `EXC`
+First, let's test variable `EXC`.
+
+```{r}
+testdf(variable = log.data$EXC,
+       max.augmentations = 3)
+```
+
+As we can see, the p-value of Breusch-Godfrey test, which is used to test for autocorrelation in the residuals is very low in first line. In such case, the ADF test is inefficient since the residuals are serial correlation.
+
+**H0 = No Autocorrelation**
+
+**Ha = Autocorrelation**
+
+We should reject null hypothesis and we cannot interpret it's ADF test. Even the p-value of BG test is higher than significant level 1%, the p-value of ADF test is higher that significant level 1% in rest of the rows, so we should reject the null hypothesis.
+
+Let's interpret the result of first difference.
+
+```{r}
+testdf(variable = log.data$dEXC, 
+       max.augmentations = 3)
+```
+
+In the first row, it shows higher p-value of BG test and and lower p-value of ADF test. It indicates `EXC` is integrated of order 1.
+### 2.1.2 PP test of `EXC`
+The paper also conducted the Phillips-Perron (PP) which is similar to ADF.
+
+H0: time series is not stationary
+
+Ha: time series is stationary
+
+```{r}
+pp.test.EXC <- ur.pp(log.data$EXC,
+                 type = c("Z-tau"), 
+                 model = c("constant"))
+summary(pp.test.EXC)
+```
+
+Test-statistic Z-tau (-0.9295) is higher than the 1% critical value (-3.480998), so we cannot reject the null about non-stationary of `EXC`.
+
+We will also use PP test for the difference of `EXC`.
+
+```{r}
+pp.test.EXC.d <- ur.pp(diff.xts(log.data$EXC), 
+                   type = c("Z-tau"), 
+                   model = c("constant"))
+summary(pp.test.EXC.d)
+```
+
+Test-statistic Z-tau (-6.9487) is now lower than the 1% critical value (-3.481377), so now we **reject** the null about non-stationary of first differences of `EXC`
+
+By concluding `EXC` ~ I(1)
+### 2.2.1 ADF test of `INF`
+We are going to repeat the same procedure on variables `INF` and `IR` to see if it is stationary.
+```{r}
+testdf(variable = log.data$INF,
+       max.augmentations = 3)
+```
+```{r}
+testdf(variable = log.data$dINF, 
+       max.augmentations = 3)
+```
+### 2.2.2 PP test of `INF`
+```{r}
+pp.test.INF <- ur.pp(log.data$INF,
+                 type = c("Z-tau"), 
+                 model = c("constant"))
+summary(pp.test.INF)
+```
+```{r}
+pp.test.INF.d <- ur.pp(diff.xts(log.data$INF), 
+                   type = c("Z-tau"), 
+                   model = c("constant"))
+summary(pp.test.INF.d)
+```
+After both of the test, variable `INF` ~ I(1).
+### 2.3.1 ADF test of `IR`
+```{r}
+testdf(variable = log.data$IR,
+       max.augmentations = 3)
+```
+```{r}
+testdf(variable = log.data$dIR, 
+       max.augmentations = 3)
+```
+### 2.3.2 PP test of `IR`
+```{r}
+pp.test.IR <- ur.pp(log.data$IR,
+                 type = c("Z-tau"), 
+                 model = c("constant"))
+summary(pp.test.IR)
+```
+```{r}
+pp.test.IR.d <- ur.pp(diff.xts(log.data$IR), 
+                   type = c("Z-tau"), 
+                   model = c("constant"))
+summary(pp.test.IR.d)
+```
+It is evident that the variable `IR` exhibits non-stationary in ADF test of its levels and shows stationary in PP test of its leves. And both of the test indicates stationary of its difference.
+
+```{r}
+log.data.vecm <- log.data[,c(1:3)]
+VARselect(log.data.vecm,
+          lag.max = 10)
+```
+
+```{r}
+johan.test.trace <-
+  ca.jo(log.data.vecm,
+        ecdet = "const",
+        type = "trace",
+        K = 2)
+summary(johan.test.trace)
+```
+
+```{r}
+log.data.vec2 <- cajorls(johan.test.trace,
+                      r = 1)
+summary(log.data.vec2)
+str(log.data.vec2)
+summary(log.data.vec2$rlm)
+```
+```{r}
+lm.model <- lm(EXC ~ INF+IR, data = log.data)
+summary(lm.model)
+```
+
+```{r}
+grangertest(EXC ~ IR,
+            data = log.data,
+            order = 2)
+```
+
+```{r}
+grangertest(IR ~ EXC,
+            data = log.data,
+            order = 2)
+```
+
+```{r}
+grangertest(EXC ~ INF,
+            data = log.data,
+            order = 2)
+```
+
+```{r}
+grangertest(INF ~ EXC,
+            data = log.data,
+            order = 2)
+```
+```{r}
+grangertest(IR ~ INF,
+            data = log.data,
+            order = 2)
+```
+
+```{r}
+grangertest(INF ~ IR,
+            data = log.data,
+            order = 2)
+```
