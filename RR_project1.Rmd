@@ -37,7 +37,7 @@ library(urca)
 ```
 
 ```{r cache = FALSE}
-setwd('/Users/hazelzhou/Desktop/RR')
+setwd('/Users/zhangrunan/Desktop')
 source("Team-project/functions/testdf.R")
 data <- read_excel('Team-project/RR_data.xls')
 ```
@@ -229,3 +229,12 @@ summary(johan.test.trace)
 ```
 
 As the result, we could **Reject** the null hypothesis r=0 at significant level of 10% and cannot reject the null hypothesis r \<= 1 since the test statistic is lower than the critical value. Given that the rank of the Johansen test results is equal to 1, which is greater than zero but less than the number of variables, it indicates that the series are cointegrated. Therefore, we can proceed with estimating the VECM.
+
+## 4. Vector Error Correction Model
+
+```{r}
+model <- lm(EXC ~ INF + IR, data = log.data)
+summary(model)
+```
+
+As the results show, both of the dependent variables are significant since the p-values are lower than significant level 1%. The variable `INF` has negative relationship with `EXC` and `IR` has positive relationship with `EXC`. It states the same finding in the paper. $$ EXC = 0.179788IR - 0.038686INF $$
