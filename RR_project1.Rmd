@@ -238,3 +238,54 @@ summary(model)
 ```
 
 As the results show, both of the dependent variables are significant since the p-values are lower than significant level 1%. The variable `INF` has negative relationship with `EXC` and `IR` has positive relationship with `EXC`. It states the same finding in the paper. $$ EXC = 0.179788IR - 0.038686INF $$
+
+## 5. Granger Causality test
+
+The Granger causality test is a statistical test used to determine whether one time series variable can predict another time series variable.
+
+```{r}
+grangertest(EXC ~ IR,
+            data = log.data,
+            order = 2)
+```
+
+```{r}
+grangertest(IR ~ EXC,
+            data = log.data,
+            order = 2)
+```
+
+```{r}
+grangertest(EXC ~ INF,
+            data = log.data,
+            order = 2)
+```
+
+```{r}
+grangertest(INF ~ EXC,
+            data = log.data,
+            order = 5)
+```
+
+```{r}
+grangertest(IR ~ INF,
+            data = log.data,
+            order = 2)
+```
+
+```{r}
+grangertest(INF ~ IR,
+            data = log.data,
+            order = 2)
+```
+
+| Null Hypothesis                | Decision      |
+|--------------------------------|---------------|
+| EXC does not Granger-cause IR  | Do Not Reject |
+| IR does not Granger-cause EXC  | Do Not Reject |
+| EXC does not Granger-cause INF | Do Not Reject |
+| INF does not Granger-cause EXC | Reject        |
+| IR does not Granger-cause INF  | Reject        |
+| INF does not Granger-cause IR  | Do Not Reject |
+
+We can reach the same conclusion as the article, which is that the relationship between inflation rates and exchange rate fluctuations is unidirectional. Interest rates and exchange rates also exhibit a unidirectional relationship.
