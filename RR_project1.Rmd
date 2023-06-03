@@ -140,3 +140,63 @@ summary(pp.test.EXC.d)
 Test-statistic Z-tau (-6.9049) is now lower than the 1% critical value (-3.481377), so now we **reject** the null about non-stationary of first differences of `EXC`
 
 By concluding `EXC` \~ I(1)
+
+### 2.2.1 ADF test of `INF`
+
+We are going to repeat the same procedure on variables `INF` and `IR` to see if it is stationary.
+
+```{r}
+testdf(variable = log.data$INF,
+       max.augmentations = 3)
+```
+
+```{r}
+testdf(variable = log.data$dINF, 
+       max.augmentations = 3)
+```
+
+### 2.2.2 PP test of `INF`
+
+```{r}
+pp.test.INF <- ur.pp(log.data$INF,
+                 type = c("Z-tau"), 
+                 model = c("constant"))
+summary(pp.test.INF)
+```
+
+```{r}
+pp.test.INF.d <- ur.pp(diff.xts(log.data$INF), 
+                   type = c("Z-tau"), 
+                   model = c("constant"))
+summary(pp.test.INF.d)
+```
+
+After both of the test, variable `INF` \~ I(1). \### 2.3.1 ADF test of `IR`
+
+```{r}
+testdf(variable = log.data$IR,
+       max.augmentations = 3)
+```
+
+```{r}
+testdf(variable = log.data$dIR, 
+       max.augmentations = 3)
+```
+
+### 2.3.2 PP test of `IR`
+
+```{r}
+pp.test.IR <- ur.pp(log.data$IR,
+                 type = c("Z-tau"), 
+                 model = c("constant"))
+summary(pp.test.IR)
+```
+
+```{r}
+pp.test.IR.d <- ur.pp(diff.xts(log.data$IR), 
+                   type = c("Z-tau"), 
+                   model = c("constant"))
+summary(pp.test.IR.d)
+```
+
+It is evident that the variable `IR` exhibits stationary in both ADF test and PP test of its levels at significant level of 5%.
