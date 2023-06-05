@@ -303,3 +303,7 @@ plot(irf(log.data.vecm.asVAR, n.ahead = 30))
 
 Impulse Response Function can be used to show how the system responds over time to shocks or sudden changes in other factors. Here, we could see from the plot 1 and 2 that `EXC` is relatively stable for the adding shocks from `INF`, also, `INF` is neutral for additinal `EXC` shocks -- i.e., irresponsive. From plot 2, `IR` goes up at the initial and towards stability response for `INF` shocks.
 
+## 7. Conclusion
+
+After conducting the same methodology that used in the paper, we could obtain most of its main findings. However, some strengths of relationships between the variables might not be the same due to some small difference of the data. It can be concluded that elevating interest rates can mitigate fluctuations in exchange rates. Furthermore, the data within INF also has an effect on EXC, which means IR holds information
+concerning INF.
