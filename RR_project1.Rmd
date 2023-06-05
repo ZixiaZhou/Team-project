@@ -20,6 +20,7 @@ knitr::opts_chunk$set(echo    = TRUE,
                       message = FALSE, 
                       warning = FALSE)
 options(scipen = 10)
+options(repos = structure(c(CRAN = "https://cloud.r-project.org/")))
 install.packages("readxl")
 ```
 
@@ -37,7 +38,7 @@ library(urca)
 ```
 
 ```{r cache = FALSE}
-setwd('/Users/zhangrunan/Desktop')
+setwd('/Users/hazelzhou/Desktop/RR')
 source("Team-project/functions/testdf.R")
 data <- read_excel('Team-project/RR_data.xls')
 ```
@@ -217,7 +218,7 @@ As we could see the lower the value of criteria, the better model. We choose the
 
 ### 3.2 Cointegration Test
 
-The Johansen test is a statistical procedure utilized to assess whether a group of time series variables exhibit cointegration. Cointegration suggests the existence of a long-term equilibrium relationship among the variables, indicating that they move together in the long run despite short-term fluctuations. It is a foundation of the VECM. Here we will conduct both **Trace test**. **Trace test**
+The Johansen test is a statistical procedure utilized to assess whether a group of time series variables exhibit cointegration. Cointegration suggests the existence of a long-term equilibrium relationship among the variables, indicating that they move together in the long run despite short-term fluctuations. It is a foundation of the VECM. Here we will conduct **Trace test**.
 
 ```{r}
 johan.test.trace <-
@@ -289,3 +290,16 @@ grangertest(INF ~ IR,
 | INF does not Granger-cause IR  | Do Not Reject |
 
 We can reach the same conclusion as the article, which is that the relationship between inflation rates and exchange rate fluctuations is unidirectional. Interest rates and exchange rates also exhibit a unidirectional relationship.
+
+## 6. Impulse Response Function
+
+Now we reparametrize the VECM into VAR in order to calculate and plot Impulse Response Function.
+
+```{r}
+log.data.vecm.asVAR <-vec2var(johan.test.trace, r = 1)
+log.data.vecm.asVAR
+plot(irf(log.data.vecm.asVAR, n.ahead = 30))
+```
+
+Impulse Response Function can be used to show how the system responds over time to shocks or sudden changes in other factors. Here, we could see from the plot 1 and 2 that `EXC` is relatively stable for the adding shocks from `INF`, also, `INF` is neutral for additinal `EXC` shocks -- i.e., irresponsive. From plot 2, `IR` goes up at the initial and towards stability response for `INF` shocks.
+
